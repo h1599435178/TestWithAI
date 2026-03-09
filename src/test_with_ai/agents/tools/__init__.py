@@ -21,6 +21,13 @@ from .browser_control import browser_use
 from .desktop_screenshot import desktop_screenshot
 from .memory_search import create_memory_search_tool
 from .get_current_time import get_current_time
+from .graph_rag import (
+    graph_rag_init,
+    graph_rag_add_file,
+    graph_rag_index,
+    graph_rag_query,
+)
+from .rerank import rerank_results
 
 __all__ = [
     "execute_python_code",
@@ -38,4 +45,9 @@ __all__ = [
     "browser_use",
     "create_memory_search_tool",
     "get_current_time",
+    "graph_rag_init",
+    "graph_rag_add_file",
+    "graph_rag_index",
+    "graph_rag_query",
+    "rerank_results",
 ]
