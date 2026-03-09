@@ -1,4 +1,8 @@
-# OS generated files
+# ==========================================
+# TestWithAI .gitignore
+# ==========================================
+
+# --- System Generated Files ---
 .DS_Store
 .DS_Store?
 ._*
@@ -6,21 +10,28 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
-desktop.ini
+Desktop.ini
+*~
 
-# IDE and editors
+# --- IDE and Editor Settings ---
 .vscode/
+!.vscode/launch.json
 !.vscode/settings.json
 !.vscode/tasks.json
-!.vscode/launch.json
 !.vscode/extensions.json
 .idea/
 *.swp
 *.swo
-*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *.iml
+.history/
+.claude/
+.cursor/
 
-# Python
+# --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
@@ -43,19 +54,22 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-.venv
+.venv/
 venv/
 ENV/
 env/
 python/
+.python-version
+.wheelshim/
+uv.lock
 
-# Node.js
+# --- Node.js & Frontend ---
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-.npm
+.npm/
 .eslintcache
 .stylelintcache
 .node_repl_history
@@ -63,46 +77,57 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+.vite/
+*.tsbuildinfo
+/console/dist/
+/website/dist/
+/website/public/search-index.json
 
-# Environment variables (CRITICAL: Never commit secrets!)
+# --- Environment & Secrets (CRITICAL) ---
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-*.env
-*.env.*
-.flaskenv
+.env.*
+!.env.example
+!.env.template
+*.json
+!pyproject.toml
+!package.json
+!tsconfig.json
+!i18n.json
+!locales/*.json
+!site.config.json
 
-# Logs and databases
-*.log
-*.sqlite
-*.sqlite3
-*.db
-logs/
-
-# Project specific
-/dist
-/out
-/build
-temp/
-tmp/
-.cache/
+# --- Project Specific Data ---
+/working/
 /mcp_logs/
 /rag_data/
 /skills/installed/
+/sessions_mount_dir/
+providers.json
+envs.json
+config.json
+*.db
+*.sqlite
+*.sqlite3
+/mcp_logs/
+/temp/
+/tmp/
+.cache/
 
-# Android/Java
-.gradle/
-build/
-capture/
-local.properties
-.externalNativeBuild/
-.cxx/
-*.apk
-*.aar
-*.jks
-*.keystore
-/captures/
-.navigation/
-captures/
+# --- Logs ---
+*.log
+logs/
+openapi-ts*.log
+
+# --- Copaw Remnants (Explicitly Ignore Old Project Files) ---
+/copaw/
+/copaw_temp/
+/copaw_restore/
+/src/copaw/
+/src/test_with_ai/console/dist/
+src/copaw/console/dist/
+
+# --- Vibe Coding / AI Assistant Artifacts ---
+openspec/
+CLAUDE.md
+AGENTS.md
+*.tmp

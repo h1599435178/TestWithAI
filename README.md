@@ -1,14 +1,14 @@
 # 🚀 Test with AI
 
 <p align="center">
-  <b>内置 OpenClaw 的智能自动化测试助手，专注解决 Token 消耗痛点</b>
+  <b>基于Copaw深度定制，内置 OpenClaw 的智能自动化测试助手，优化OpenClaw测试流程，减少Token消耗，提高测试效率。</b>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-0.0.1-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/License-Apache%202.0-red.svg" alt="License">
   <img src="https://img.shields.io/badge/Platform-Web%20|%20Android-orange.svg" alt="Platform">
-  <img src="https://img.shields.io/badge/OpenClaw-Compatible-brightgreen.svg" alt="OpenClaw">
+  <img src="https://img.shields.io/badge/Based%20on-CoPaw-brightgreen.svg" alt="Based on">
 </p>
 
 ---
@@ -17,7 +17,7 @@
 
 在 OpenClaw 面世以来，接入测试环境时最显著的痛点就是 **Token 消耗爆炸**。每次简单的页面操作都可能伴随着全量 DOM 的重新爬取和模型调用。
 
-**Test with AI** 旨在通过 **RAG 检索增强**、**视觉定位优化** 以及 **多模型调度策略**，在保证自动化测试强度的同时，将 Token 成本降至最低。
+**Test with AI** 是基于 [CoPaw](https://github.com/agentscope-ai/CoPaw) 深度定制的自动化测试版本。旨在通过 **RAG 检索增强**、**视觉定位优化** 以及 **多模型调度策略**，在保证自动化测试强度的同时，将 Token 成本降至最低。
 
 ---
 
@@ -25,18 +25,36 @@
 
 | 特性 | 说明 |
 | :--- | :--- |
-| 📦 **本地部署** | 支持拖拽包、上传网站，在本地环境快速开启自动化测试。 |
-| 🛠️ **Skill & MCP** | 内置多种 Skill，支持自定义 MCP Server 集成，打通平台生态。 |
+| 📦 **一键部署** | 支持 `curl | bash` 或 `irm | iex` 一键完成环境配置与安装。 |
+| 🛠️ **Skill & MCP** | 继承 CoPaw 强大的插件系统，内置多种测试专属 Skill。 |
 | 🧠 **RAG 驱动** | 通过需求文档、测试用例和 Mock 截图构建本地知识库，大幅减少上下文消耗。 |
 | 📱 **多端支持** | 已支持 Web、Android 测试，iOS 开发计划已在路上。 |
-| 💰 **降本方案** | 自定义模型 Endpoint (BaseUrl/ModelID)，支持 DeepSeek、Qwen 等高性价比模型。 |
+| 💰 **降本方案** | 支持自定义模型 Endpoint，适配 DeepSeek、Qwen 等高性价比模型。 |
 | 🔗 **生态闭环** | 深度集成腾讯 Tapd，测试完成后可直接一键提交缺陷。 |
 
 ---
 
-## 🏗️ 核心逻辑：如何节省 Token？
+## 🚀 快速开始
 
-项目摒弃了 OpenClaw 传统的“全量爬取”模式，采用以下策略：
+### 一键安装 (推荐)
+
+无需预装 Python，只需一行命令即可自动配置环境（安装 uv、创建虚拟环境、安装依赖）：
+
+**Linux / macOS / WSL:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/YourUsername/TestWithAI/main/scripts/install.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/YourUsername/TestWithAI/main/scripts/install.ps1 | iex
+```
+
+> **注意**：安装完成后，请打开新终端窗口，输入 `twai init --defaults` 接着运行 `twai app` 即可启动控制台。
+
+---
+
+## 🏗️ 核心逻辑：如何节省 Token？
 
 ```mermaid
 graph TD
@@ -47,44 +65,20 @@ graph TD
     G --> F
 ```
 
-1.  **视觉定位代替代码定位**：首次启动进行全量 Mock 截图。后续通过视觉特征匹配元素，避免反复拉取数万行的 HTML 代码。
-2.  **RAG 知识注入**：将冗长的需求文档和用例库向量化。模型执行时仅调取最相关的片段，而非全量输入。
+1.  **视觉定位代替代码定位**：通过视觉特征匹配元素，避免反复拉取数万行的 HTML 代码。
+2.  **RAG 知识注入**：模型执行时仅调取最相关的需求片段，而非全量输入。
 3.  **调用策略优化**：改写测试 Skill 逻辑，优先使用 Playwright 等脚本引擎执行原子操作。
 
 ---
 
-## 🚀 快速开始
+## 🛠️ 命令行工具 (CLI)
 
-### 一键部署运行
+安装后，您可以使用 `twai` 命令管理项目：
 
-只需一行命令，即可在本地自动配置环境并启动项目：
-
-（开发中）
-
----
-
-## 🛠️ 原生集成
-
-### 🧰 内置 Skills
-- `browser_use`: 优化的元素操作与视觉定位。
-- `skill_use`: Skill 调度与执行引擎。
-- `tapd_skill`: 腾讯 Tapd 平台缺陷管理。
-- `find_skill`: 智能 Skill 检索。
-
-### 🔌 MCP Server
-支持标准 Model Context Protocol (MCP)，您可以轻松接入外部工具链或自定义业务逻辑。
-
----
-
-## 🗺️ 路线图 (Roadmap)
-
-- [x] 核心 RAG 逻辑框架搭建
-- [x] Web & Android 端自动化驱动
-- [ ] 优化视觉定位算法，进一步提升稳定性
-- [ ] 增加更多高频测试场景 (安全、性能)
-- [ ] iOS 端全量适配支持
-- [ ] 集成 CI/CD 流程，实现回归测试闭环
-- [ ] 生产环境全自动验收方案
+- `twai init`: 初始化配置（交互式）。
+- `twai app`: 启动 Web 控制台 (默认 http://127.0.0.1:8088)。
+- `twai skills`: 管理和查看已安装的测试技能。
+- `twai env`: 配置环境变量（如 API Keys）。
 
 ---
 
@@ -92,4 +86,4 @@ graph TD
 
 欢迎提交 Issue 或 Pull Request！我们致力于让 AI 自动化测试变得更便宜、更高效。
 
-**License:** [MIT](LICENSE)
+**License:** [Apache License 2.0](LICENSE)

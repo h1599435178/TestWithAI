@@ -1,41 +1,62 @@
 # ==========================================
-# TestWithAI 一键安装与运行脚本 (PowerShell 版)
+# TestWithAI 一键安装脚本 (PowerShell 版)
 # 支持 Windows
 # ==========================================
 
-$ErrorActionPreference = "Stop" # 遇到错误停止执行
+$ErrorActionPreference = "Stop"
 
-Write-Host "==> 开始部署 TestWithAI..." -ForegroundColor Blue
+Write-Host "==> 正在准备安装 TestWithAI..." -ForegroundColor Blue
 
-# 1. 环境检测
-Write-Host "==> 正在检测运行环境..." -ForegroundColor Blue
-if (!(Get-Command git -ErrorAction SilentlyContinue)) { Write-Error "错误: 需要安装 Git"; exit }
-if (!(Get-Command python -ErrorAction SilentlyContinue)) { Write-Error "错误: 需要安装 Python"; exit }
-if (!(Get-Command node -ErrorAction SilentlyContinue)) { Write-Error "错误: 需要安装 Node.js"; exit }
+# 1. 基础环境检查
+if (!(Get-Command git -ErrorAction SilentlyContinue)) {
+    Write-Error "错误: 请先安装 Git (https://git-scm.com/)"
+    exit
+}
 
-# 2. 检查目录
+# 2. 检查并安装 uv
+if (!(Get-Command uv -ErrorAction SilentlyContinue)) {
+    Write-Host "==> 正在安装 uv (高性能 Python 包管理器)..." -ForegroundColor Yellow
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+    # 将 uv 路径添加到当前会话
+    $env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
+}
+
+# 3. 准备工作目录
+$PROJECT_DIR = Join-Path $env:USERPROFILE ".testwithai"
+if (!(Test-Path $PROJECT_DIR)) { New-Item -ItemType Directory -Path $PROJECT_DIR }
+Set-Location $PROJECT_DIR
+
+# 4. 克隆项目 (如果目录不存在)
 if (!(Test-Path ".git")) {
-    Write-Host "==> 正在克隆仓库..." -ForegroundColor Blue
+    Write-Host "==> 正在从 GitHub 获取 TestWithAI 源码..." -ForegroundColor Blue
     git clone https://github.com/YourUsername/TestWithAI.git .
 }
 
-# 3. 后端环境配置
-Write-Host "==> 正在配置后端环境 (Python)..." -ForegroundColor Blue
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-# pip install -r backend/requirements.txt  # 假设有此文件
+# 5. 使用 uv 进行安装
+Write-Host "==> 正在创建虚拟环境并安装依赖..." -ForegroundColor Blue
+uv venv --python 3.10
+.\.venv\Scripts\Activate.ps1
+uv pip install -e .
 
-# 4. 前端环境配置
-Write-Host "==> 正在配置前端环境 (Node.js)..." -ForegroundColor Blue
-# Set-Location frontend
-# npm install
-# npm run build # 假设有此目录
-# Set-Location ..
+# 6. 配置用户 Path (以便全局使用 twai 命令)
+$BIN_DIR = Join-Path $env:USERPROFILE ".local\bin"
+if (!(Test-Path $BIN_DIR)) { New-Item -ItemType Directory -Path $BIN_DIR }
 
-# 5. 启动项目
-Write-Host "==> 部署完成！正在启动..." -ForegroundColor Green
-# Start-Process python main.py
-# npm run start
+# 创建一个 PowerShell 别名脚本或启动程序
+$TWAI_PATH = Join-Path $BIN_DIR "twai.ps1"
+@"
+& `"$PROJECT_DIR\.venv\Scripts\test_with_ai.exe`" @args
+"@ | Set-Content $TWAI_PATH
 
-Write-Host "==> 项目已在本地运行。" -ForegroundColor Green
+# 将 BIN_DIR 添加到 User PATH (如果尚未添加)
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($userPath -notlike "*$BIN_DIR*") {
+    [Environment]::SetEnvironmentVariable("Path", $userPath + ";" + $BIN_DIR, "User")
+    Write-Host "==> 已将安装目录添加到 User PATH，请重启终端使命令生效。" -ForegroundColor Cyan
+}
+
+# 7. 完成
+Write-Host "==> 安装完成！" -ForegroundColor Green
+Write-Host "您可以直接运行以下命令启动项目：" -ForegroundColor Blue
+Write-Host "twai init --defaults && twai app" -ForegroundColor Yellow
+Write-Host "提示: 如果 twai 命令未生效，请重启 PowerShell 窗口。" -ForegroundColor Blue
