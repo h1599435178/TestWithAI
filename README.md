@@ -36,21 +36,39 @@
 
 ## 🚀 快速开始
 
-### 一键安装 (推荐)
+### 1. 一键安装与配置
 
-无需预装 Python，只需一行命令即可自动配置环境（安装 uv、创建虚拟环境、安装依赖）：
+本项目提供高度自动化的脚本，会自动处理 `uv` 包管理器、Python 虚拟环境及依赖。
 
 **Linux / macOS / WSL:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YourUsername/TestWithAI/main/scripts/install.sh | bash
+bash scripts/install.sh
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/YourUsername/TestWithAI/main/scripts/install.ps1 | iex
+powershell -ExecutionPolicy ByPass -File scripts/install.ps1
 ```
 
-> **注意**：安装完成后，请打开新终端窗口，输入 `twai init --defaults` 接着运行 `twai app` 即可启动控制台。
+---
+
+### 2. 运行项目 (零配置模式)
+
+安装完成后，您可以直接在项目根目录下使用快捷启动脚本，**无需配置任何系统环境变量**：
+
+**Windows:**
+```cmd
+.\twai.bat init --defaults
+.\twai.bat app
+```
+
+**Linux / macOS:**
+```bash
+./twai.sh init --defaults
+./twai.sh app
+```
+
+> **提示**：启动 `twai app` 后，在浏览器打开 `http://127.0.0.1:8088` 即可进入控制台。
 
 ---
 

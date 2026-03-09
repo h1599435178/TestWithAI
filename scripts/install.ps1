@@ -1,5 +1,5 @@
 # ==========================================
-# TestWithAI 一键安装脚本 (PowerShell 版)
+# TestWithAI 一键稳健安装脚本 (PowerShell 版)
 # 支持 Windows
 # ==========================================
 
@@ -13,50 +13,57 @@ if (!(Get-Command git -ErrorAction SilentlyContinue)) {
     exit
 }
 
-# 2. 检查并安装 uv
-if (!(Get-Command uv -ErrorAction SilentlyContinue)) {
-    Write-Host "==> 正在安装 uv (高性能 Python 包管理器)..." -ForegroundColor Yellow
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    # 将 uv 路径添加到当前会话
-    $env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
+# 2. 准备项目目录
+$PROJECT_DIR = Get-Location
+Write-Host "==> 项目目录: $PROJECT_DIR" -ForegroundColor Blue
+
+# 3. 创建虚拟环境 (优先使用 uv，失败则回退到 venv)
+$USE_UV = $false
+if (Get-Command uv -ErrorAction SilentlyContinue) {
+    $USE_UV = $true
+} else {
+    Write-Host "提示: 未找到 uv，正在尝试自动安装以加速部署..." -ForegroundColor Yellow
+    try {
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex" -ErrorAction Stop
+        $env:PATH = "$env:USERPROFILE\.local\bin;$env:PATH"
+        $USE_UV = $true
+    } catch {
+        Write-Host "警告: uv 安装失败，将回退到标准 pip/venv 模式。" -ForegroundColor Yellow
+    }
 }
 
-# 3. 准备工作目录
-$PROJECT_DIR = Join-Path $env:USERPROFILE ".testwithai"
-if (!(Test-Path $PROJECT_DIR)) { New-Item -ItemType Directory -Path $PROJECT_DIR }
-Set-Location $PROJECT_DIR
-
-# 4. 克隆项目 (如果目录不存在)
-if (!(Test-Path ".git")) {
-    Write-Host "==> 正在从 GitHub 获取 TestWithAI 源码..." -ForegroundColor Blue
-    git clone https://github.com/YourUsername/TestWithAI.git .
+if ($USE_UV) {
+    Write-Host "==> 使用 uv 创建虚拟环境并安装依赖..." -ForegroundColor Blue
+    uv venv --python 3.10
+    .\.venv\Scripts\Activate.ps1
+    uv pip install -e .
+} else {
+    Write-Host "==> 使用标准 venv 创建虚拟环境并安装依赖..." -ForegroundColor Blue
+    python -m venv .venv
+    .\.venv\Scripts\Activate.ps1
+    python -m pip install --upgrade pip
+    pip install -e .
 }
 
-# 5. 使用 uv 进行安装
-Write-Host "==> 正在创建虚拟环境并安装依赖..." -ForegroundColor Blue
-uv venv --python 3.10
-.\.venv\Scripts\Activate.ps1
-uv pip install -e .
+# 4. 创建根目录快捷启动脚本 (Windows 批处理)
+Write-Host "==> 正在创建快捷启动脚本 (twai.bat)..." -ForegroundColor Blue
+$BAT_CONTENT = @"
+@echo off
+setlocal
+cd /d "%~dp0"
+if not exist ".venv\Scripts\activate.bat" (
+    echo [ERROR] Virtual environment not found. Please run scripts\install.ps1 first.
+    pause
+    exit /b 1
+)
+call .venv\Scripts\activate.bat
+python -m test_with_ai %*
+endlocal
+"@
+$BAT_CONTENT | Set-Content (Join-Path $PROJECT_DIR "twai.bat")
 
-# 6. 配置用户 Path (以便全局使用 twai 命令)
-$BIN_DIR = Join-Path $env:USERPROFILE ".local\bin"
-if (!(Test-Path $BIN_DIR)) { New-Item -ItemType Directory -Path $BIN_DIR }
-
-# 创建一个 PowerShell 别名脚本或启动程序
-$TWAI_PATH = Join-Path $BIN_DIR "twai.ps1"
-@"
-& `"$PROJECT_DIR\.venv\Scripts\test_with_ai.exe`" @args
-"@ | Set-Content $TWAI_PATH
-
-# 将 BIN_DIR 添加到 User PATH (如果尚未添加)
-$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($userPath -notlike "*$BIN_DIR*") {
-    [Environment]::SetEnvironmentVariable("Path", $userPath + ";" + $BIN_DIR, "User")
-    Write-Host "==> 已将安装目录添加到 User PATH，请重启终端使命令生效。" -ForegroundColor Cyan
-}
-
-# 7. 完成
+# 5. 完成
 Write-Host "==> 安装完成！" -ForegroundColor Green
-Write-Host "您可以直接运行以下命令启动项目：" -ForegroundColor Blue
-Write-Host "twai init --defaults && twai app" -ForegroundColor Yellow
-Write-Host "提示: 如果 twai 命令未生效，请重启 PowerShell 窗口。" -ForegroundColor Blue
+Write-Host "您可以直接在根目录下运行以下命令（无需配置 PATH）：" -ForegroundColor Blue
+Write-Host ".\twai.bat init --defaults && .\twai.bat app" -ForegroundColor Yellow
+Write-Host "提示: 以后运行项目，只需执行 .\twai.bat 即可。" -ForegroundColor Blue
