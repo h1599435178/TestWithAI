@@ -52,7 +52,7 @@ def _ensure_ollama():
         raise ImportError(
             "The 'ollama' Python package is required. You may have "
             "installed Ollama via their CLI or desktop app, but you "
-            "also need the Python SDK to manage models from Test with AI. "
+            "also need the Python SDK to manage models from TestWithAI. "
             "Please install it with: pip install 'test_with_ai[ollama]'",
         ) from e
     return ollama

@@ -5,6 +5,7 @@ All terminal interaction with *questionary* is centralised here so that
 the rest of the CLI code never imports questionary directly.
 """
 from __future__ import annotations
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -12,7 +13,17 @@ import click
 import questionary
 
 
+# Non-interactive mode: when CI=true or TESTING=true, use defaults
+def _is_non_interactive() -> bool:
+    """Check if we should run in non-interactive mode."""
+    return os.environ.get("CI", "").lower() in ("1", "true") or os.environ.get("TESTING", "").lower() in ("1", "true")
+
+
 def prompt_confirm(question: str, *, default: bool = False) -> bool:
+    # Non-interactive mode: return default without prompting
+    if _is_non_interactive():
+        click.echo(f"{question} (auto-answered: {default})")
+        return default
     """Prompt the user for a yes/no answer.
     Args:
         question: The question shown to the user.
@@ -84,6 +95,12 @@ def prompt_choice(
         The selected string.
         Falls back to *default* (or the first option) on Ctrl+C.
     """
+    # Non-interactive mode: return default without prompting
+    if _is_non_interactive():
+        result = default or options[0]
+        click.echo(f"{question} (auto-answered: {result})")
+        return result
+
     items = [questionary.Choice(opt, value=opt) for opt in options]
 
     preselect = None
@@ -127,6 +144,12 @@ def prompt_select(
     Returns:
         The selected *value*, or ``None`` on Ctrl+C.
     """
+    # Non-interactive mode: return default without prompting
+    if _is_non_interactive():
+        result = default or (options[0][1] if options else None)
+        click.echo(f"{question} (auto-answered: {result})")
+        return result
+
     items = [
         questionary.Choice(label, value=value) for label, value in options
     ]

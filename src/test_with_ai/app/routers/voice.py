@@ -112,7 +112,7 @@ async def voice_incoming(request: Request) -> Response:
         welcome_greeting=getattr(
             config,
             "welcome_greeting",
-            "Hi! This is Test with AI. How can I help you?",
+            "Hi! This is TestWithAI. How can I help you?",
         ),
         tts_provider=getattr(config, "tts_provider", "google"),
         tts_voice=getattr(config, "tts_voice", "en-US-Journey-D"),

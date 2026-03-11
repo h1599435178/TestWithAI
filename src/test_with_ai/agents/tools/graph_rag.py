@@ -80,11 +80,37 @@ async def _ensure_installed() -> Optional[ToolResponse]:
             check=True,
             capture_output=True,
         )
-        subprocess.run(
-            [python_exe, "-m", "pip", "install", "graphrag"],
-            check=True,
-            capture_output=True,
-        )
+        
+        # Try installing with different mirrors if default fails
+        mirrors = [
+            None,  # default
+            "https://pypi.org/simple",
+            "https://pypi.tuna.tsinghua.edu.cn/simple",
+            "http://pypi.douban.com/simple"
+        ]
+        
+        last_error = None
+        for mirror in mirrors:
+            cmd = [python_exe, "-m", "pip", "install", "graphrag"]
+            if mirror:
+                cmd.extend(["-i", mirror])
+                if mirror.startswith("http://"):
+                    host = mirror.split("//")[1].split("/")[0]
+                    cmd.extend(["--trusted-host", host])
+            
+            try:
+                logger.info(f"Trying to install GraphRAG using mirror: {mirror or 'default'}")
+                subprocess.run(cmd, check=True, capture_output=True)
+                last_error = None
+                break
+            except subprocess.CalledProcessError as e:
+                last_error = e
+                logger.warning(f"Failed to install GraphRAG using mirror {mirror or 'default'}: {e.stderr.decode() if e.stderr else str(e)}")
+                continue
+        
+        if last_error:
+            raise last_error
+            
         return None
     except Exception as e:
         logger.exception("Failed to isolate GraphRAG environment")
@@ -128,8 +154,8 @@ async def graph_rag_init() -> ToolResponse:
             [
                 python_exe,
                 "-m",
-                "graphrag.index",
-                "--init",
+                "graphrag",
+                "init",
                 "--root",
                 str(GRAPHRAG_ROOT),
             ],

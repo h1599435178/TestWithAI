@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class VoiceChannel(BaseChannel):
-    """Test with AI Voice channel backed by Twilio ConversationRelay.
+    """TestWithAI Voice channel backed by Twilio ConversationRelay.
 
     ``uses_manager_queue = False`` because voice calls are long-lived
     WebSocket sessions -- the ConversationRelay handler runs its own

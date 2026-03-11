@@ -483,17 +483,17 @@ def read_root():
         return FileResponse(_CONSOLE_INDEX)
     return {
         "message": (
-            "Test with AI Web Console is not available. "
-            "If you installed Test with AI from source code, please run "
-            "`npm ci && npm run build` in Test with AI's `console/` "
-            "directory, and restart Test with AI to enable the web console."
+            "TestWithAI Web Console is not available. "
+            "If you installed TestWithAI from source code, please run "
+            "`npm ci && npm run build` in TestWithAI's `console/` "
+            "directory, and restart TestWithAI to enable the web console."
         ),
     }
 
 
 @app.get("/api/version")
 def get_version():
-    """Return the current Test with AI version."""
+    """Return the current TestWithAI version."""
     return {"version": __version__}
 
 

@@ -13,7 +13,7 @@ from test_with_ai.config import load_config
 
 if TYPE_CHECKING:
     from .memory import MemoryManager
-    from reme.memory.file_based import ReMeInMemoryMemory
+    from reme.memory.file_based_copaw_copaw import CoPawInMemoryMemory
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class CommandHandler(ConversationCommandHandlerMixin):
     def __init__(
         self,
         agent_name: str,
-        memory: "ReMeInMemoryMemory",
+        memory: "CoPawInMemoryMemory",
         memory_manager: "MemoryManager | None" = None,
         enable_memory_manager: bool = True,
     ):
@@ -66,7 +66,7 @@ class CommandHandler(ConversationCommandHandlerMixin):
 
         Args:
             agent_name: Name of the agent for message creation
-            memory: Agent's ReMeInMemoryMemory instance
+            memory: Agent's CoPawInMemoryMemory instance
             memory_manager: Optional memory manager instance
             enable_memory_manager: Whether memory manager is enabled
         """

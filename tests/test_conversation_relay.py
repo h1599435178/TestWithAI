@@ -14,7 +14,7 @@ from test_with_ai.app.channels.voice.session import CallSessionManager
 
 def _make_handler(
     messages=None,
-    process_response="Hello from Test with AI!",
+    process_response="Hello from TestWithAI!",
 ):
     """Create a handler with a mock WebSocket and process."""
     ws = AsyncMock()
@@ -92,7 +92,7 @@ class TestConversationRelayHandler:
         ]
         assert len(token_msgs) >= 2
         # First should be the response content with last=False
-        assert token_msgs[0]["token"] == "Hello from Test with AI!"
+        assert token_msgs[0]["token"] == "Hello from TestWithAI!"
         assert token_msgs[0]["last"] is False
         # Last should be the empty final marker with last=True
         assert token_msgs[-1]["token"] == ""

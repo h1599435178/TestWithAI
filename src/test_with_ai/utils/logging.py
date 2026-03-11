@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Logging setup for Test with AI: console output and optional file handler."""
+"""Logging setup for TestWithAI: console output and optional file handler."""
 import logging
 import logging.handlers
 import os

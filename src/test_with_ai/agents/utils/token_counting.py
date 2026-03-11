@@ -16,10 +16,12 @@ def _get_token_counter():
     """Get or initialize the global token counter instance.
 
     Returns:
-        TokenCounterBase: The token counter instance for Qwen models.
+        TokenCounterBase: The token counter instance for Qwen models,
+        or None if initialization fails.
 
-    Raises:
-        RuntimeError: If token counter initialization fails.
+    Note:
+        If tokenizer initialization fails (e.g., due to path issues),
+        returns None and lets the caller handle the fallback.
     """
     global _token_counter
     if _token_counter is None:
@@ -33,25 +35,38 @@ def _get_token_counter():
             Path(__file__).parent.parent.parent / "tokenizer"
         )
 
-        if (
+        # Check if local tokenizer exists
+        local_tokenizer_exists = (
             local_tokenizer_path.exists()
             and (local_tokenizer_path / "tokenizer.json").exists()
-        ):
-            tokenizer_path = str(local_tokenizer_path)
-            logger.info(f"Using local Qwen tokenizer from {tokenizer_path}")
+        )
+
+        if local_tokenizer_exists:
+            # Use resolve() to handle paths with special characters
+            try:
+                tokenizer_path = local_tokenizer_path.resolve()
+                logger.info(f"Using local Qwen tokenizer from {tokenizer_path}")
+            except Exception as e:
+                logger.warning(f"Failed to resolve local tokenizer path: {e}")
+                tokenizer_path = "Qwen/Qwen2.5-7B-Instruct"
+                logger.info("Falling back to HuggingFace tokenizer")
         else:
             tokenizer_path = "Qwen/Qwen2.5-7B-Instruct"
             logger.info(
                 "Local tokenizer not found, downloading from HuggingFace",
             )
 
-        _token_counter = HuggingFaceTokenCounter(
-            pretrained_model_name_or_path=tokenizer_path,
-            use_mirror=True,  # Use HF mirror for users in China
-            use_fast=True,
-            trust_remote_code=True,
-        )
-        logger.debug("Token counter initialized with Qwen tokenizer")
+        try:
+            _token_counter = HuggingFaceTokenCounter(
+                pretrained_model_name_or_path=tokenizer_path,
+                use_mirror=True,  # Use HF mirror for users in China
+                use_fast=True,
+                trust_remote_code=True,
+            )
+            logger.debug("Token counter initialized with Qwen tokenizer")
+        except Exception as e:
+            logger.warning(f"Failed to initialize tokenizer: {e}")
+            _token_counter = None
     return _token_counter
 
 
@@ -100,8 +115,8 @@ def _extract_text_from_messages_v2(
     - List content with tool_result blocks:
       {"role": "user", "content": [{"type": "tool_result", "output": "..."}]}
 
-    Args:
-        messages: List of message dictionaries in chat format.
+    Args List of message dictionaries:
+        messages: in chat format.
 
     Returns:
         str: Concatenated text content from all messages.
@@ -156,6 +171,16 @@ async def count_message_tokens(
         RuntimeError: If token counter fails to initialize.
     """
     token_counter = _get_token_counter()
+    if token_counter is None:
+        # Fallback to character-based estimation
+        text = _extract_text_from_messages_v2(messages)
+        estimated_tokens = len(text.encode("utf-8")) // 4
+        logger.warning(
+            "Token counter not available, using estimated_tokens=%d",
+            estimated_tokens,
+        )
+        return estimated_tokens
+
     text = _extract_text_from_messages_v2(messages)
     token_ids = token_counter.tokenizer.encode(text)
     token_count = len(token_ids)
@@ -210,6 +235,15 @@ def safe_count_str_tokens(text: str) -> int:
     """
     try:
         token_counter = _get_token_counter()
+        if token_counter is None:
+            # Fallback to character-based estimation
+            estimated_tokens = len(text.encode("utf-8")) // 4
+            logger.warning(
+                "Token counter not available, using estimated_tokens=%d",
+                estimated_tokens,
+            )
+            return estimated_tokens
+
         token_ids = token_counter.tokenizer.encode(text)
         token_count = len(token_ids)
         logger.debug(

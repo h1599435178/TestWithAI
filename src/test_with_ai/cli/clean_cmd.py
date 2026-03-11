@@ -23,7 +23,7 @@ def _iter_children(p: Path) -> list[Path]:
     help="List what would be deleted, but do not delete",
 )
 def clean_cmd(yes: bool, dry_run: bool) -> None:
-    """Clear Test with AI WORKING_DIR (~/.test_with_ai by default)."""
+    """Clear TestWithAI WORKING_DIR (~/.test_with_ai by default)."""
     wd = WORKING_DIR
 
     if not wd.exists():

@@ -1,4 +1,4 @@
-﻿# ==========================================
+﻿﻿# ==========================================
 # TestWithAI 一键稳健安装脚本 (PowerShell 版)
 # 支持 Windows
 # ==========================================
@@ -36,7 +36,7 @@ if (Get-Command uv -ErrorAction SilentlyContinue) {
 
 if ($USE_UV) {
     Write-Host "==> 使用 uv 创建虚拟环境并安装依赖..." -ForegroundColor Blue
-    uv venv --python 3.10
+    uv venv --python 3.10 --clear
     & ".\.venv\Scripts\Activate.ps1"
     uv pip install -e .
 } else {

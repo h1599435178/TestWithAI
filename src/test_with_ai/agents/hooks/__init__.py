@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Agent hooks package.
 
-This package provides hook implementations for Test with AIAgent that follow
+This package provides hook implementations for TestWithAIAgent that follow
 AgentScope's hook interface (any Callable).
 
 Available Hooks:

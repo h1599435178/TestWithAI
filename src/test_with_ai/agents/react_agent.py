@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Test with AI Agent - Main agent implementation.
+"""TestWithAI Agent - Main agent implementation.
 
-This module provides the main Test with AIAgent class built on ReActAgent,
+This module provides the main TestWithAIAgent class built on ReActAgent,
 with integrated tools, skills, and memory management.
 """
 import asyncio
@@ -61,8 +61,8 @@ def normalize_reasoning_tool_choice(
     return tool_choice
 
 
-class Test with AIAgent(ReActAgent):
-    """Test with AI Agent with integrated tools, skills, and memory management.
+class TestWithAIAgent(ReActAgent):
+    """TestWithAI Agent with integrated tools, skills, and memory management.
 
     This agent extends ReActAgent with:
     - Built-in tools (shell, file operations, browser, etc.)
@@ -82,7 +82,7 @@ class Test with AIAgent(ReActAgent):
         max_input_length: int = 128 * 1024,  # 128K = 131072 tokens
         namesake_strategy: NamesakeStrategy = "skip",
     ):
-        """Initialize Test with AIAgent.
+        """Initialize TestWithAIAgent.
 
         Args:
             env_context: Optional environment context to prepend to

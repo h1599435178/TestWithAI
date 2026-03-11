@@ -3,7 +3,9 @@
 # pylint: disable=redefined-outer-name
 
 import asyncio
+import platform
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -12,6 +14,9 @@ import pytest
 
 from test_with_ai.agents.tools import file_io, shell
 from test_with_ai.agents.tools.utils import DEFAULT_MAX_LINES, DEFAULT_MAX_BYTES
+
+# Skip shell tests on Windows (Unix commands not available)
+IS_WINDOWS = platform.system() == "Windows"
 
 
 # ============ Shell Truncation Tests ============
@@ -46,6 +51,7 @@ def test_shell_multiline_output(shell_test_dir):
     assert "truncated" not in text.lower()
 
 
+@pytest.mark.skipif(IS_WINDOWS, reason="seq command not available on Windows")
 def test_shell_truncated_by_lines(shell_test_dir):
     """Test shell output truncation by line limit."""
     lines_to_generate = DEFAULT_MAX_LINES + 500
@@ -65,6 +71,7 @@ def test_shell_truncated_by_lines(shell_test_dir):
         assert int(numeric_lines[0]) > 1
 
 
+@pytest.mark.skipif(IS_WINDOWS, reason="yes/head commands not available on Windows")
 def test_shell_truncated_by_bytes(shell_test_dir):
     """Test shell output truncation by byte limit."""
     # Generate output exceeding DEFAULT_MAX_BYTES (30KB)
@@ -90,6 +97,7 @@ def test_shell_command_failure(shell_test_dir):
     assert "exit code" in text.lower()
 
 
+@pytest.mark.skipif(IS_WINDOWS, reason="sleep command not available on Windows")
 def test_shell_timeout(shell_test_dir):
     """Test command timeout handling."""
     result = asyncio.run(

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""CLI command: run Test with AI app on a free port in a native webview window."""
+"""CLI command: run TestWithAI app on a free port in a native webview window."""
 from __future__ import annotations
 
 import os
@@ -67,16 +67,16 @@ def desktop_cmd(
     host: str,
     log_level: str,
 ) -> None:
-    """Run Test with AI app on an auto-selected free port in a webview window.
+    """Run TestWithAI app on an auto-selected free port in a webview window.
 
     Starts the FastAPI app in a subprocess on a free port, then opens a
     native webview window loading that URL. Use for a dedicated desktop
-    window without conflicting with an existing Test with AI app instance.
+    window without conflicting with an existing TestWithAI app instance.
     """
 
     port = _find_free_port(host)
     url = f"http://{host}:{port}"
-    click.echo(f"Starting Test with AI app on {url} (port {port})")
+    click.echo(f"Starting TestWithAI app on {url} (port {port})")
     _log_desktop("[desktop] Server subprocess starting...")
 
     env = os.environ.copy()
@@ -106,7 +106,7 @@ def desktop_cmd(
                     "[desktop] HTTP ready, creating webview window...",
                 )
                 webview.create_window(
-                    "Test with AI Desktop",
+                    "TestWithAI Desktop",
                     url,
                     width=1280,
                     height=800,

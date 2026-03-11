@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches
-"""Memory Manager for Test with AI agents.
+"""Memory Manager for TestWithAI agents.
 
-Extends ReMeLight to provide memory management capabilities including:
+Extends ReMeCopaw to provide memory management capabilities including:
 - Message compaction with configurable ratio
 - Memory summarization with tool support
 - Vector and full-text search integration
@@ -25,20 +25,21 @@ logger = logging.getLogger(__name__)
 
 # Try to import reme, log warning if it fails
 try:
-    from reme.reme_light import ReMeLight
+    from reme import reme_copaw
 
+    ReMeCopaw = reme_copaw.ReMeCopaw
     _REME_AVAILABLE = True
 
 except ImportError as e:
     _REME_AVAILABLE = False
     logger.warning(f"reme package not installed. {e}")
 
-    class ReMeLight:  # type: ignore
+    class ReMeCopaw:  # type: ignore
         """Placeholder when reme is not available."""
 
 
-class MemoryManager(ReMeLight):
-    """Memory manager that extends ReMeLight for Test with AI agents.
+class MemoryManager(ReMeCopaw):
+    """Memory manager that extends ReMeCopaw for TestWithAI agents.
 
     This class provides memory management capabilities including:
     - Memory compaction for long conversations via compact_memory()
@@ -125,28 +126,39 @@ class MemoryManager(ReMeLight):
         else:
             memory_backend = memory_store_backend
 
+        # Try to load config, use defaults if not available
+        try:
+            config = load_config()
+            max_input_length = config.agents.running.max_input_length
+            memory_compact_ratio = config.agents.running.memory_compact_ratio
+            language = config.agents.language
+        except Exception:
+            max_input_length = 8192
+            memory_compact_ratio = 0.5
+            language = "zh"
+
+        # Get token counter (may fail if tokenizer issues, that's OK)
+        try:
+            self.token_counter = _get_token_counter()
+        except Exception as e:
+            logger.warning(f"Failed to initialize token counter: {e}")
+            self.token_counter = None
+
         # Initialize parent ReMeCopaw class
+        # Note: ReMeCopaw doesn't accept embedding_api_key or embedding_base_url
+        # These are handled separately if needed
         super().__init__(
-            embedding_api_key=embedding_api_key,
-            embedding_base_url=embedding_base_url,
             working_dir=working_dir,
-            default_embedding_model_config={
-                "model_name": embedding_model_name,
-                "dimensions": embedding_dimensions,
-                "enable_cache": embedding_cache_enabled,
-                "use_dimensions": False,
-                "max_cache_size": embedding_max_cache_size,
-                "max_input_length": embedding_max_input_length,
-                "max_batch_size": embedding_max_batch_size,
-            },
-            default_file_store_config={
-                "backend": memory_backend,
-                "store_name": "test_with_ai",
-                "vector_enabled": vector_enabled,
-                "fts_enabled": fts_enabled,
-            },
+            chat_model=None,  # Will be set later via prepare_model_formatter
+            formatter=None,   # Will be set later via prepare_model_formatter
+            token_counter=self.token_counter,
+            toolkit=None,     # Will be set below
+            max_input_length=max_input_length,
+            memory_compact_ratio=memory_compact_ratio,
+            language=language,
         )
 
+        # Register summary tools after parent init
         self.summary_toolkit = Toolkit()
         self.summary_toolkit.register_tool_function(read_file)
         self.summary_toolkit.register_tool_function(write_file)
@@ -154,7 +166,6 @@ class MemoryManager(ReMeLight):
 
         self.chat_model: ChatModelBase | None = None
         self.formatter: FormatterBase | None = None
-        self.token_counter = _get_token_counter()
 
     @staticmethod
     def _safe_str(key: str, default: str) -> str:

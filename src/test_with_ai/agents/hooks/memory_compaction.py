@@ -19,7 +19,7 @@ from ..utils import (
 
 if TYPE_CHECKING:
     from ..memory import MemoryManager
-    from reme.memory.file_based import ReMeInMemoryMemory
+    from reme.memory.file_based_copaw_copaw import CoPawInMemoryMemory
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class MemoryCompactionHook:
             None (hook doesn't modify kwargs)
         """
         try:
-            memory: "ReMeInMemoryMemory" = agent.memory
+            memory: "CoPawInMemoryMemory" = agent.memory
             token_counter = self.memory_manager.token_counter
 
             system_prompt = agent.sys_prompt

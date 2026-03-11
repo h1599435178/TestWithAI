@@ -20,7 +20,7 @@ from .session import SafeJSONSession
 from .utils import build_env_context
 from ..channels.schema import DEFAULT_CHANNEL
 from ...agents.memory import MemoryManager
-from ...agents.react_agent import Test with AIAgent
+from ...agents.react_agent import TestWithAIAgent
 from ...config import load_config
 from ...constant import (
     WORKING_DIR,
@@ -109,7 +109,7 @@ class AgentRunner(Runner):
             max_iters = config.agents.running.max_iters
             max_input_length = config.agents.running.max_input_length
 
-            agent = Test with AIAgent(
+            agent = TestWithAIAgent(
                 env_context=env_context,
                 mcp_clients=mcp_clients,
                 memory_manager=self.memory_manager,

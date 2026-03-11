@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Memory management module for Test with AI agents."""
+"""Memory management module for TestWithAI agents."""
 
 from .agent_md_manager import AgentMdManager
 from .memory_manager import MemoryManager

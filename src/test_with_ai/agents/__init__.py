@@ -1,32 +1,32 @@
 # -*- coding: utf-8 -*-
-"""Test with AI Agents Module.
+"""TestWithAI Agents Module.
 
 This module provides the main agent implementation and supporting utilities
 for building AI agents with tools, skills, and memory management.
 
 Public API:
-- Test with AIAgent: Main agent class
+- TestWithAIAgent: Main agent class
 - create_model_and_formatter: Factory for creating models and formatters
 
 Example:
-    >>> from test_with_ai.agents import Test with AIAgent, create_model_and_formatter
-    >>> agent = Test with AIAgent()
+    >>> from test_with_ai.agents import TestWithAIAgent, create_model_and_formatter
+    >>> agent = TestWithAIAgent()
     >>> # Or with custom model
     >>> model, formatter = create_model_and_formatter()
 """
 
-# Test with AIAgent is lazy-loaded so that importing agents.skills_manager (e.g.
+# TestWithAIAgent is lazy-loaded so that importing agents.skills_manager (e.g.
 # from CLI init_cmd/skills_cmd) does not pull react_agent, agentscope, tools.
 # pylint: disable=undefined-all-variable
-__all__ = ["Test with AIAgent", "create_model_and_formatter"]
+__all__ = ["TestWithAIAgent", "create_model_and_formatter"]
 
 
 def __getattr__(name: str):
     """Lazy load heavy imports."""
-    if name == "Test with AIAgent":
-        from .react_agent import Test with AIAgent
+    if name == "TestWithAIAgent":
+        from .react_agent import TestWithAIAgent
 
-        return Test with AIAgent
+        return TestWithAIAgent
     if name == "create_model_and_formatter":
         from .model_factory import create_model_and_formatter
 
