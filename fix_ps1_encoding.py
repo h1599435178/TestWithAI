@@ -1,4 +1,7 @@
-﻿# ==========================================
+
+import os
+
+content = r'''# ==========================================
 # TestWithAI 一键稳健安装脚本 (PowerShell 版)
 # 支持 Windows
 # ==========================================
@@ -69,3 +72,13 @@ Write-Host "==> 安装完成！" -ForegroundColor Green
 Write-Host "您可以直接在根目录下运行以下命令（无需配置 PATH）：" -ForegroundColor Blue
 Write-Host ".\twai.bat init --defaults && .\twai.bat app" -ForegroundColor Yellow
 Write-Host "提示: 以后运行项目，只需执行 .\twai.bat 即可。" -ForegroundColor Blue
+'''
+
+file_path = r'd:\TestWithAI\scripts\install.ps1'
+with open(file_path, 'wb') as f:
+    # Write UTF-8 BOM
+    f.write(b'\xef\xbb\xbf')
+    # Write content using CRLF for Windows compatibility
+    f.write(content.replace('\n', '\r\n').encode('utf-8'))
+
+print(f"Successfully wrote {file_path} with UTF-8 BOM and CRLF.")

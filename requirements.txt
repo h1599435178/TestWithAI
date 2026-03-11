@@ -17,5 +17,4 @@ lark-oapi>=1.5.3
 python-telegram-bot>=20.0
 twilio>=9.10.2
 pywebview>=4.0
-graphrag>=0.1.0
 -e .

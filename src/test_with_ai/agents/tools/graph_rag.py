@@ -5,7 +5,7 @@ import shutil
 import logging
 import sys
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 from agentscope.message import TextBlock
 from agentscope.tool import ToolResponse
@@ -18,15 +18,32 @@ logger = logging.getLogger(__name__)
 # Default GraphRAG workspace directory
 GRAPHRAG_ROOT = WORKING_DIR / "graphrag"
 GRAPHRAG_INPUT = GRAPHRAG_ROOT / "input"
+GRAPHRAG_VENV = GRAPHRAG_ROOT / ".venv"
+
+
+def _get_graphrag_python() -> str:
+    """Return the path to the Python executable in the GraphRAG venv."""
+    if os.name == "nt":  # Windows
+        python_exe = GRAPHRAG_VENV / "Scripts" / "python.exe"
+    else:  # Linux / macOS
+        python_exe = GRAPHRAG_VENV / "bin" / "python"
+    return str(python_exe)
 
 
 def _check_graphrag_installed() -> bool:
-    """Check if the graphrag package is installed."""
+    """Check if the graphrag package is installed in its dedicated venv."""
+    python_exe = _get_graphrag_python()
+    if not os.path.exists(python_exe):
+        return False
     try:
-        import graphrag  # noqa: F401
-
+        # Check if graphrag is importable in that environment
+        subprocess.run(
+            [python_exe, "-c", "import graphrag"],
+            capture_output=True,
+            check=True,
+        )
         return True
-    except ImportError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
 
@@ -37,22 +54,51 @@ def _ensure_graphrag_dirs() -> None:
 
 
 async def _ensure_installed() -> Optional[ToolResponse]:
-    """Ensure the GraphRAG package is installed, or try to install it."""
-    if not _check_graphrag_installed():
-        logger.info("GraphRAG not installed, attempting to install...")
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "graphrag"])
-            return None
-        except Exception as e:
-            return ToolResponse(
-                content=[
-                    TextBlock(
-                        type="text",
-                        text=f"GraphRAG is not installed and failed to install: {str(e)}",
+    """Ensure GraphRAG is installed in its dedicated virtual environment."""
+    if _check_graphrag_installed():
+        return None
+
+    _ensure_graphrag_dirs()
+    logger.info("GraphRAG not found in isolated environment. Setting up venv...")
+
+    try:
+        # 1. Create venv
+        subprocess.run(
+            [sys.executable, "-m", "venv", str(GRAPHRAG_VENV)],
+            check=True,
+            capture_output=True,
+        )
+
+        # 2. Install graphrag in the venv
+        python_exe = _get_graphrag_python()
+        logger.info(f"Installing GraphRAG into {GRAPHRAG_VENV}...")
+        
+        # Use a more relaxed installation for Python 3.10 to avoid conflicts
+        # Older graphrag versions work better on 3.10
+        subprocess.run(
+            [python_exe, "-m", "pip", "install", "--upgrade", "pip"],
+            check=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            [python_exe, "-m", "pip", "install", "graphrag"],
+            check=True,
+            capture_output=True,
+        )
+        return None
+    except Exception as e:
+        logger.exception("Failed to isolate GraphRAG environment")
+        return ToolResponse(
+            content=[
+                TextBlock(
+                    type="text",
+                    text=(
+                        "GraphRAG isolation failed. This tool requires a separate "
+                        f"environment due to dependency conflicts. Error: {str(e)}"
                     ),
-                ],
-            )
-    return None
+                ),
+            ],
+        )
 
 
 def _setup_env() -> bool:
@@ -72,18 +118,15 @@ def _setup_env() -> bool:
 
 
 async def graph_rag_init() -> ToolResponse:
-    """Initialize the GraphRAG workspace.
-
-    This creates the necessary directory structure and configuration files.
-    """
+    """Initialize the GraphRAG workspace."""
     if res := await _ensure_installed():
         return res
     _ensure_graphrag_dirs()
+    python_exe = _get_graphrag_python()
     try:
-        # Run graphrag init via CLI
         result = subprocess.run(
             [
-                "python",
+                python_exe,
                 "-m",
                 "graphrag.index",
                 "--init",
@@ -112,23 +155,10 @@ async def graph_rag_init() -> ToolResponse:
                 ),
             ],
         )
-    except Exception as e:
-        return ToolResponse(
-            content=[
-                TextBlock(
-                    type="text",
-                    text=f"An unexpected error occurred: {str(e)}",
-                ),
-            ],
-        )
 
 
 async def graph_rag_add_file(file_path: str) -> ToolResponse:
-    """Add a file to the GraphRAG indexing input directory.
-
-    Args:
-        file_path: Path to the source file to be indexed.
-    """
+    """Add a file to the GraphRAG indexing input directory."""
     if res := await _ensure_installed():
         return res
     _ensure_graphrag_dirs()
@@ -169,7 +199,7 @@ async def graph_rag_add_file(file_path: str) -> ToolResponse:
 
 
 async def graph_rag_index() -> ToolResponse:
-    """Run the GraphRAG indexing process on all files in the input directory."""
+    """Run the GraphRAG indexing process."""
     if res := await _ensure_installed():
         return res
     _ensure_graphrag_dirs()
@@ -183,11 +213,10 @@ async def graph_rag_index() -> ToolResponse:
             ],
         )
 
+    python_exe = _get_graphrag_python()
     try:
-        # Run graphrag index via CLI
-        # This can be time-consuming
         result = subprocess.run(
-            ["python", "-m", "graphrag.index", "--root", str(GRAPHRAG_ROOT)],
+            [python_exe, "-m", "graphrag.index", "--root", str(GRAPHRAG_ROOT)],
             capture_output=True,
             text=True,
             check=True,
@@ -215,13 +244,7 @@ async def graph_rag_query(
     query: str,
     method: Literal["global", "local"] = "global",
 ) -> ToolResponse:
-    """Query the GraphRAG index.
-
-    Args:
-        query: The question or query to ask the knowledge graph.
-        method: The query method. 'global' is better for high-level summaries,
-                'local' is better for specific entity details.
-    """
+    """Query the GraphRAG index."""
     if res := await _ensure_installed():
         return res
     _ensure_graphrag_dirs()
@@ -235,11 +258,11 @@ async def graph_rag_query(
             ],
         )
 
+    python_exe = _get_graphrag_python()
     try:
-        # Run graphrag query via CLI
         result = subprocess.run(
             [
-                "python",
+                python_exe,
                 "-m",
                 "graphrag.query",
                 "--root",
